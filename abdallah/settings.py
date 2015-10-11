@@ -9,3 +9,4 @@ DOCKER = {
     'TLS': False
 }
 DOCKER.update(getattr(settings, 'ABDALLAH_DOCKER', {}))
+API_URL = getattr(settings, 'ABDALLAH_API_URL', None)

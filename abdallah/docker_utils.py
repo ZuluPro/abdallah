@@ -23,7 +23,9 @@ def get_docker_client():
 
 def get_job_host_config(job, job_attr):
     template = loader.get_template('job.sh')
-    context = Context(job_attr)
+    context_dict = job_attr.copy()
+    context_dict.update({'job': job})
+    context = Context(context_dict)
     init_script_path = tempfile.mktemp('abdallah')
     volumes = [init_script_path]
     with open(init_script_path, 'w') as init_script:

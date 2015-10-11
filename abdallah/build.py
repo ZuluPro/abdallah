@@ -10,6 +10,7 @@ def run_build(project, commit='master'):
     for job_attr in jobs_configuration[:1]:
         job = build.job_set.create(build=build)
         run_job(job, job_attr, commit=commit)
+    return build
 
 
 def run_job(job, job_attr, commit='master'):
