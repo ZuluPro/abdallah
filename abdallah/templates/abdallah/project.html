@@ -1,0 +1,32 @@
+{% extends "abdallah/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1 class="page-header">{{ project }}</h1>
+
+<div class="input-group">
+ <span class="input-group-addon" id="basic-addon1">URL</span>
+ <input type="text" class="form-control" disabled aria-describedby="basic-addon1" value="{{ project.url }}">
+ <span class="input-group-btn">
+  <button class="btn btn-default btn-primary pull-right">
+   <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Run build
+  </button>
+ </span>
+</div>
+
+<hr>
+
+<div class="list-group">
+{% for build in builds %}
+<li class="list-group-item list-group-item-{{ build.get_css_class }}">
+<a href="{{ build.get_absolute_url }}">#{{ build.number }}</a>
+<div class="pull-right">
+{{ build.date }}
+<b>{{ build.get_status_display }}</b>
+</div>
+</li>
+{% empty %}
+<li class="list-group-item">{% trans "No build launched" %}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

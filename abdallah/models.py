@@ -1,4 +1,5 @@
 import yaml
+from docker.errors import NotFound
 from django.db import models
 from django.utils.translation import ugettext as _
 from django.db.models.signals import pre_save
@@ -15,6 +16,11 @@ STATUS_CHOICES = (
     ('PAS', _('Passed')),
     ('FAI', _('Failed')),
 )
+CSS_CLASSES = {
+    'PAS': 'success',
+    'FAI': 'error',
+    'STO': 'default',
+}
 
 DEFAULT_CONFIGURATION = """python:
     - "2.7"
@@ -37,6 +43,9 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse('project', args=[self.name])
+
     def launch_build(self, commit='master'):
         return run_build(self, commit='master')
 
@@ -44,7 +53,7 @@ class Project(models.Model):
 class Build(models.Model):
     number = models.IntegerField(null=False, blank=False,
                                  verbose_name=_("Build number"))
-    status = models.CharField(max_length=3, choices=STATUS_CHOICES, null=False)
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES, null=False, default='STA')
     commit = models.CharField(max_length=54, null=False)
     configuration = models.TextField(blank=True)
 
@@ -59,6 +68,12 @@ class Build(models.Model):
     def __str__(self):
         return "%s: #%s" % (self.project.name, self.number)
 
+    def get_absolute_url(self):
+        return reverse('build', args=[self.project.name, self.number])
+
+    def get_css_class(self):
+        return CSS_CLASSES.get(self.status, 'info')
+
     def get_jobs_configuration(self):
         raw_conf = self.configuration or self.project.configuration
         configuration = yaml.load_all(raw_conf).next()
@@ -66,10 +81,10 @@ class Build(models.Model):
             {
                 'commit': self.commit,
                 'repository': self.project.url,
-                'env': configuration['env'],
-                'install': configuration['install'],
+                'env': configuration.get('env', []),
+                'install': configuration.get('install', []),
                 'script': configuration['script'],
-                'after_success': configuration['after_success']
+                'after_success': configuration.get('after_success', [])
             }
             for version in configuration['python']
         ]
@@ -86,7 +101,7 @@ def pre_save_build(sender, instance, **kwars):
 class Job(models.Model):
     number = models.IntegerField(null=False, blank=False,
                                  verbose_name=_("Job number"))
-    status = models.CharField(max_length=3, choices=STATUS_CHOICES, null=False)
+    status = models.CharField(max_length=3, choices=STATUS_CHOICES, null=False, default='STA')
 
     build = models.ForeignKey('abdallah.Build', null=False)
     date = models.DateTimeField(auto_now_add=True)
@@ -99,6 +114,12 @@ class Job(models.Model):
     def __str__(self):
         return "%s: #%s.%s" % (self.build.project.name, self.build.number,
                                self.number)
+
+    def get_absolute_url(self):
+        return reverse('job', args=[self.build.project.name, self.build.number, self.number])
+
+    def get_css_class(self):
+        return CSS_CLASSES.get(self.status, 'info')
 
     @property
     def full_url(self):
@@ -113,8 +134,11 @@ class Job(models.Model):
 
     @property
     def logs(self):
-        client = get_docker_client()
-        return client.logs(self.container_name)
+        try:
+            client = get_docker_client()
+            return client.logs(self.container_name)
+        except NotFound:
+            return _("Logs no longer exist.")
 
 
 @receiver(pre_save, sender=Job)

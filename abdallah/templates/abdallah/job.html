@@ -1,0 +1,12 @@
+{% extends "abdallah/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1 class="page-header">
+<a href="{{ job.build.project.get_absolute_url }}">{{ job.build.project }}</a> -
+<a href="{{ job.build.get_absolute_url }}">Build #{{ job.build.number }}</a> /
+Job <b>#{{ job.number }}</b>
+</h1>
+
+<textarea class="form-control logarea" rows="30" disabled>{{ job.logs }}</textarea>
+{% endblock %}

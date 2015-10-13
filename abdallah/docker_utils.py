@@ -22,7 +22,7 @@ def get_docker_client():
 
 
 def get_job_host_config(job, job_attr):
-    template = loader.get_template('job.sh')
+    template = loader.get_template('abdallah/job.sh')
     context_dict = job_attr.copy()
     context_dict.update({'job': job})
     context = Context(context_dict)

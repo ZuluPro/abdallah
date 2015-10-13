@@ -20,6 +20,7 @@ from abdallah.rest.router import router
 
 urlpatterns = patterns(
     '',
+    url(r'^abdallah/', include('abdallah.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/v1/', include(router.urls, namespace='api_v1'))
 )
