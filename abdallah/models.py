@@ -1,8 +1,9 @@
 import yaml
 from docker.errors import NotFound
+from requests.exceptions import ConnectionError
 from django.db import models
 from django.utils.translation import ugettext as _
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from rest_framework.reverse import reverse
 from abdallah.build import run_build
@@ -15,11 +16,13 @@ STATUS_CHOICES = (
     ('STO', _('Stopped')),
     ('PAS', _('Passed')),
     ('FAI', _('Failed')),
+    ('ERR', _('Errored')),
 )
 CSS_CLASSES = {
     'PAS': 'success',
-    'FAI': 'error',
+    'FAI': 'danger',
     'STO': 'default',
+    'ERR': 'danger',
 }
 
 DEFAULT_CONFIGURATION = """python:
@@ -139,6 +142,8 @@ class Job(models.Model):
             return client.logs(self.container_name)
         except NotFound:
             return _("Logs no longer exist.")
+        except ConnectionError:
+            return _("Can't connect to Docker.")
 
 
 @receiver(pre_save, sender=Job)
@@ -146,12 +151,20 @@ def pre_save_job(sender, instance, **kwars):
     if not instance.number:
         instance.number = Job.objects.filter(build=instance.build)\
                                      .count() + 1
+
+
+@receiver(post_save, sender=Job)
+def post_save_job(sender, instance, **kwars):
     related_jobs = instance.build.job_set.all()
     build_failed = related_jobs.filter(status='FAI').exists()
     if build_failed:
         instance.build.status = 'FAI'
         instance.build.save()
-    if related_jobs.exists() and \
-       related_jobs.filter(status='PAS').count() == related_jobs.count():
-        instance.build.status = 'PAS'
+    if related_jobs.exists():
+        if related_jobs.filter(status='PAS').count() == related_jobs.count():
+            instance.build.status = 'PAS'
+        if related_jobs.filter(status='FAI').exists():
+            instance.build.status = 'FAI'
+        if related_jobs.filter(status='ERR').exists():
+            instance.build.status = 'ERR'
         instance.build.save()

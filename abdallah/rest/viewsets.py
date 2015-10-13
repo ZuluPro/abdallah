@@ -13,20 +13,21 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def run_build(self, request, pk=None):
+        """Run a build for a project and a commit."""
         queryset = Project.objects.all()
         project = get_object_or_404(queryset, pk=pk)
-        build = project.launch_build()
+        build = project.launch_build(commit=request.data.get('commit', 'master'))
         serializer = serializers.BuildSerializer(build)
         return Response(serializer.data)
 
 
-class BuildViewSet(viewsets.ModelViewSet):
+class BuildViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Build.objects.all()
     serializer_class = serializers.BuildSerializer
     authentication_classes = ()
 
 
-class JobViewSet(viewsets.ModelViewSet):
+class JobViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Job.objects.all()
     serializer_class = serializers.JobSerializer
     authentication_classes = ()
