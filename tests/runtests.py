@@ -43,7 +43,7 @@ DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3',
 DOCKER_CONFIG = {
     'VERSION': os.environ.get('ABDALLAH_DOCKER_VERSION', '1.12')
 }
-API_URL = os.environ['ABDALLAH_API_URL']
+API_URL = os.environ.get('ABDALLAH_API_URL', '')
 
 
 settings.configure(

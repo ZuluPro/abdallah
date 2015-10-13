@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.translation import ugettext as _
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+from django.utils import six
 from rest_framework.reverse import reverse
 from abdallah.build import run_build
 from abdallah import settings
@@ -79,7 +80,7 @@ class Build(models.Model):
 
     def get_jobs_configuration(self):
         raw_conf = self.configuration or self.project.configuration
-        configuration = yaml.load_all(raw_conf).next()
+        configuration = six.next(yaml.load_all(raw_conf))
         jobs = [
             {
                 'commit': self.commit,
