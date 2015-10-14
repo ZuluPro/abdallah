@@ -50,6 +50,9 @@ class Project(models.Model):
     def get_absolute_url(self):
         return reverse('project', args=[self.name])
 
+    def get_run_build_url(self):
+        return reverse('project-run-build', args=[self.name])
+
     def launch_build(self, commit='master'):
         return run_build(self, commit='master')
 

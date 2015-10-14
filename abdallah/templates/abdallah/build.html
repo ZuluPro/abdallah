@@ -7,6 +7,8 @@
 <b>Build #{{ build.number }}</b>
 </h1>
 
+{% include "abdallah/messages.html" %}
+
 <div class="list-group">
 {% for job in jobs %}
 <li class="list-group-item list-group-item-{{ job.get_css_class }}">

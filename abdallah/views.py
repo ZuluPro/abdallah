@@ -1,8 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.utils.translation import ugettext as _
 from abdallah.models import Project
 
 
 def project(request, name):
+    import time; time.sleep(3)
     project = get_object_or_404(Project.objects.filter(name=name))
     return render(request, 'abdallah/project.html', {
         'title': str(project),
@@ -10,6 +13,13 @@ def project(request, name):
         'project': project,
         'builds': project.build_set.order_by('-number'),
     })
+
+
+def run_build(request, name):
+    project = get_object_or_404(Project.objects.filter(name=name))
+    build = project.launch_build(request.POST.get('commit', 'master'))
+    messages.info(request, _('Build launched'))
+    return redirect(build.get_absolute_url())
 
 
 def build(request, name, build_number):

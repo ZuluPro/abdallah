@@ -4,15 +4,20 @@
 {% block content %}
 <h1 class="page-header">{{ project }}</h1>
 
+{% include "abdallah/messages.html" %}
+
+<form action="{{ project.get_run_build_url }}" method="POST">"
 <div class="input-group">
  <span class="input-group-addon" id="basic-addon1">URL</span>
  <input type="text" class="form-control" disabled aria-describedby="basic-addon1" value="{{ project.url }}">
  <span class="input-group-btn">
+   {% csrf_token %}
   <button class="btn btn-default btn-primary pull-right">
    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Run build
   </button>
  </span>
 </div>
+</form>
 
 <hr>
 
